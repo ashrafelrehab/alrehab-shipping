@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>الرحاب للشحن - Alrehab Shipping</title>
+<style>
+*{box-sizing:border-box;font-family:system-ui,Tahoma}body{margin:0;background:#f1f5f9;color:#0f172a}header{background:#0f766e;color:#fff;padding:16px;text-align:center}header h1{margin:0;font-size:22px}header p{margin:4px 0 0;opacity:.9}.wrap{max-width:800px;margin:auto;padding:14px}.card{background:#fff;border-radius:14px;padding:14px;margin-bottom:12px;box-shadow:0 2px 8px #0001}input,select,textarea{width:100%;padding:11px;border:1px solid #cbd5e1;border-radius:10px;margin:6px 0;font-size:15px}button{background:#0f766e;color:#fff;border:0;padding:12px;border-radius:10px;width:100%;font-size:16px;font-weight:700;cursor:pointer}.row{display:grid;grid-template-columns:1fr 1fr;gap:10px}.stat{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;text-align:center}.stat b{font-size:22px;display:block}.badge{padding:4px 10px;border-radius:20px;font-size:12px;font-weight:700}.new{background:#fef9c3}.pick{background:#dbeafe}.ship{background:#e0e7ff}.done{background:#dcfce7}.search{margin-bottom:12px}.item{border-bottom:1px solid #eee;padding:10px 0}.item:last-child{border:0}.flex{display:flex;justify-content:space-between;align-items:center;gap:8px}.small{color:#64748b;font-size:13px}.del{background:#ef4444;padding:6px 10px;width:auto;font-size:13px}.up{background:#f59e0b;padding:6px 10px;width:auto;font-size:13px}
+</style>
+</head>
+<body>
+<header><h1>🚚 الرحاب للشحن</h1><p>Alrehab Shipping - نظام إدارة الشحنات</p></header>
+<div class="wrap">
+<div class="card stat"><div><b id="t1">0</b>إجمالي</div><div><b id="t2">0</b>قيد التوصيل</div><div><b id="t3">0</b>تم التسليم</div></div>
+<div class="card"><h3 style="margin:0 0 8px">➕ إضافة شحنة جديدة</h3>
+<div class="row"><input id="name" placeholder="اسم العميل *"><input id="phone" placeholder="رقم موبايل العميل"></div>
+<input id="address" placeholder="العنوان بالتفصيل">
+<div class="row"><input id="city" placeholder="المدينة / المنطقة"><input id="price" type="number" placeholder="قيمة التحصيل (جنيه)"></div>
+<textarea id="notes" placeholder="ملاحظات / محتويات الشحنة"></textarea>
+<button onclick="add()">حفظ الشحنة ✅</button></div>
+<div class="card"><input class="search" id="q" oninput="render()" placeholder="🔍 ابحث بالاسم أو رقم الشحنة أو الموبايل...">
+<select id="filter" onchange="render()"><option value="">كل الحالات</option><option value="جديدة">جديدة</option><option value="تم الاستلام">تم الاستلام</option><option value="قيد التوصيل">قيد التوصيل</option><option value="تم التسليم">تم التسليم</option></select>
+<div id="list"></div></div>
+<div class="card small" style="text-align:center">الرحاب للشحن © 2026 - البيانات محفوظة على جهازك</div>
+</div>
+<script>
+let data=JSON.parse(localStorage.getItem('alrehab')||'[]');
+function save(){localStorage.setItem('alrehab',JSON.stringify(data));render();}
+function add(){
+let n=name.value.trim();if(!n){alert('اكتب اسم العميل');return;}
+let id='RH-'+Math.floor(1000+Math.random()*9000);
+data.unshift({id:id,name:n,phone:phone.value,address:address.value,city:city.value,price:price.value||0,notes:notes.value,status:'جديدة',date:new Date().toLocaleDateString('ar-EG')});
+['name','phone','address','city','price','notes'].forEach(i=>document.getElementById(i).value='');save();alert('تم حفظ الشحنة: '+id);
+}
+function next(id){let o=data.find(x=>x.id==id);let s=['جديدة','تم الاستلام','قيد التوصيل','تم التسليم'];let i=s.indexOf(o.status);if(i<3)o.status=s[i+1];save();}
+function del(id){if(confirm('حذف الشحنة؟')){data=data.filter(x=>x.id!=id);save();}}
+function render(){
+let q=document.getElementById('q').value;let f=document.getElementById('filter').value;
+let list=data.filter(x=>(!f||x.status==f)&&(x.name+x.id+x.phone).includes(q));
+document.getElementById('t1').innerText=data.length;
+document.getElementById('t2').innerText=data.filter(x=>x.status!='تم التسليم').length;
+document.getElementById('t3').innerText=data.filter(x=>x.status=='تم التسليم').length;
+document.getElementById('list').innerHTML=list.length?list.map(o=>`<div class="item"><div class="flex"><b>${o.name} - ${o.id}</b><span class="badge ${o.status=='جديدة'?'new':o.status=='تم الاستلام'?'pick':o.status=='قيد التوصيل'?'ship':'done'}">${o.status}</span></div><div class="small">📞 ${o.phone||'-'} | 📍 ${o.address||''} - ${o.city||''} | 💰 ${o.price} ج | 📅 ${o.date}</div><div class="small">${o.notes||''}</div><div class="flex" style="margin-top:8px"><button class="up" onclick="next('${o.id}')">تحديث الحالة ⏭️</button><button class="del" onclick="del('${o.id}')">حذف</button></div></div>`).join(''):'<p style="text-align:center">لا توجد شحنات بعد</p>';
+}render();
+</script>
+</body>
+</html>
